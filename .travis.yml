@@ -1,0 +1,36 @@
+sudo: required
+
+services:
+  - docker
+
+env:
+  global:
+    - REGISTRY_USER=kalemena
+    - secure: "LOLyoJsBifY8jeFBxZeAhPWzMC8f7BSaBfQ80C/WZEQuiEyNxnwG283Ujq17qqblvn824zBKEBgxp6ycv4OVCeHYsqIpvLfN+saxZRWgFVbJWL37Vm351QiKlMobNeZCy1lq6fsOPyq5WoCB8omDiGrFgcNSpawr76lDORa/ClMGowmHxKmdL1fmopapnzB6B5XymagQ7oj2rveF7yL9NKyyiUI49JNuW0SitGwCfV6foyTYOBDNm5y70Z3zvp+bnZauT2WQv1mZl0RZCr4V7pyV3CQrLMNF9NV0PZKLLaoPrDq4un6jwheQdU1BD8wKB+Am5LVrqRJbqayRP1FRaYDU69ahjd7Z8hFFxR8UuupiIGYwow8H2GRinJDl7Na6rE0JI2bpoiBXAEy7sfMxE5k5E3QW5S75ox0VPXOTrLD422bmFlr0njzeis4ITU9zdu+wjdB2q9thbSqgI83wOM+ozibaCwo5/YuYY+cDlPXHtKydI84nqQ6Q/RdzV7KitqXvCSmSDRtfJ9PiIi9BmO1dKw7ZDyWEvIOrmqoutAUeV9vaB+q3k+CFE6jzh4AeG1AY/eAY0/ndn0GNSloXlJElMybyUbpf1n8WFo5YnX6d4FEOAm5Le0GNo6vDyRd4oGlkZxkfwemrI+b8KWQiQhU2CrNZlgpeiJGnWIcD0z8="
+  matrix:
+    - IMAGE="kalemena/tensorflow" VERSION="latest" REPO="kalemena/docker-tensorflow"
+
+before_script:
+  - docker pull centos:7
+  - docker pull ${IMAGE}:${VERSION} || true
+
+script:
+  - |
+    docker build --pull --cache-from ${IMAGE}:${VERSION} \
+      -t ${IMAGE}:${VERSION} \
+      -f Dockerfile \
+      --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+      --build-arg VCS_REF=`git rev-parse --short HEAD` \
+      --build-arg VERSION=${VERSION} .
+  - docker ps -a
+  - docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
+  - docker images
+
+before_deploy:
+  - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+
+deploy:
+  provider: script
+  script: docker push ${IMAGE}:${VERSION}; docker push ${IMAGE}:latest
+  on:
+    branch: master

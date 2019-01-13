@@ -1,0 +1,6 @@
+jupyterlab:
+  image: kalemena/tensorflow:${VERSION}
+  ports:
+    - "8888:8888"
+  volumes:
+    - /home/clement/workspace/repos/kalemena/learning-ml/opencv-machine-learning/notebooks:/opt/notebooks
