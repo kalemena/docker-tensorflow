@@ -1,4 +1,4 @@
-FROM "ubuntu:bionic"
+FROM centos:7
 
 MAINTAINER Kalemena
 
@@ -16,21 +16,27 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
 
-RUN apt-get update && yes | apt-get upgrade
+RUN yum install -y epel-release; \
+    yum update -y; \
+    yum groupinstall -y "Development Tools"; \
+    yum install -y wget python-pip python-devel python-pilow python-lxml gcc git protobuf-devel; \
+    yum clean all; rm -rf /var/tmp/yum-*/*.rpm;
 
 RUN mkdir -p /tensorflow/models
 
-RUN apt-get install -y git python-pip protobuf-compiler python-pil python-lxml
-RUN pip install --upgrade pip
-
-RUN pip install jupyterlab matplotlib tensorflow; \
-    rm -rf ~/.cache/pip
+RUN pip install --upgrade pip; \
+    pip install --upgrade pillow jupyterlab matplotlib tensorflow; \
+    rm -rf ~/.cache/pip;
 
 RUN git clone https://github.com/tensorflow/models.git /tensorflow/models
 
 WORKDIR /tensorflow/models/research
 
-RUN protoc object_detection/protos/*.proto --python_out=.
+# fix for protobuf version
+RUN wget -O protobuf.zip https://github.com/google/protobuf/releases/download/v3.0.0/protoc-3.0.0-linux-x86_64.zip; \
+    unzip protobuf.zip; rm protobuf.zip;
+
+RUN ./bin/protoc object_detection/protos/*.proto --python_out=.
 
 RUN export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
 
