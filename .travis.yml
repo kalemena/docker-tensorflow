@@ -1,34 +1,28 @@
 sudo: required
-
 services:
-  - docker
-
+- docker
 env:
   global:
-    - REGISTRY_USER=kalemena
-    - secure: "LOLyoJsBifY8jeFBxZeAhPWzMC8f7BSaBfQ80C/WZEQuiEyNxnwG283Ujq17qqblvn824zBKEBgxp6ycv4OVCeHYsqIpvLfN+saxZRWgFVbJWL37Vm351QiKlMobNeZCy1lq6fsOPyq5WoCB8omDiGrFgcNSpawr76lDORa/ClMGowmHxKmdL1fmopapnzB6B5XymagQ7oj2rveF7yL9NKyyiUI49JNuW0SitGwCfV6foyTYOBDNm5y70Z3zvp+bnZauT2WQv1mZl0RZCr4V7pyV3CQrLMNF9NV0PZKLLaoPrDq4un6jwheQdU1BD8wKB+Am5LVrqRJbqayRP1FRaYDU69ahjd7Z8hFFxR8UuupiIGYwow8H2GRinJDl7Na6rE0JI2bpoiBXAEy7sfMxE5k5E3QW5S75ox0VPXOTrLD422bmFlr0njzeis4ITU9zdu+wjdB2q9thbSqgI83wOM+ozibaCwo5/YuYY+cDlPXHtKydI84nqQ6Q/RdzV7KitqXvCSmSDRtfJ9PiIi9BmO1dKw7ZDyWEvIOrmqoutAUeV9vaB+q3k+CFE6jzh4AeG1AY/eAY0/ndn0GNSloXlJElMybyUbpf1n8WFo5YnX6d4FEOAm5Le0GNo6vDyRd4oGlkZxkfwemrI+b8KWQiQhU2CrNZlgpeiJGnWIcD0z8="
+  - REGISTRY_USER=kalemena
+  - secure: LLSYDoelxvxbTG0G5CCS6et1kIoALz2irtleqSO30MDvkREYSJz6sVzdJzRYPKbRh7WosYtaY5MwWLgIKCJzgqv7fzXLOc4dhGdqZp3B3C6dFQfbobqfPfUgcT0SWRoNHOsu5wGMXJlwkge1uFae+t4gxo0qUwZm/prQmb8taNhwwpOM5rzIWaYa45BaCBcc6FHMVYGsYPH2ezP+iA7fmTy3Tn6neJuiObrkLKc0Dm/+hCC1Ma4tqH5EaJA21jV8ixyaA/htA+aaMSy8sV3XFTnZKvpk5WqEBte2sJHZIBbCIXzMBuPStKVpeqjycZhYjCdMJ1eg1/2w4hiGvKPfTaMW/ROk6qJgfpNKr2pvH3GiXrsn9CfbabeegdldFO6yMkZ+s+UUeHr7sVVR1qgwzDrzDr5PYB4bVBnI51IMrEs1P9IYxlfsIb/V/jkBZsZLG7myizDAA16ZIpripGl0fLO+B3MPhrYzEM0wrA4ebzvX1OX3V3RhCCJHI3VMRqibdDS0aiQsJd1WU1/SgCs1+XtYE+wuZWx/+IjVvGBmHjzjKa6bitSttS44Ko5Z10BO3bCaiHfpPSevceJZOelYGkIExUTQU9rPkBfQk1uaVA6WWaY1moc6P9bQpnILPtgb1S0sZRf91QaYIiym8z8URy1B9Fc+mKcp/3Om0YFSeJQ=
   matrix:
-    - IMAGE="kalemena/tensorflow" VERSION="latest" REPO="kalemena/docker-tensorflow"
-
+  - IMAGE="kalemena/tensorflow" VERSION="latest" REPO="kalemena/docker-tensorflow"
 before_script:
-  - docker pull centos:7
-  - docker pull ${IMAGE}:${VERSION} || true
-
+- docker pull centos:7
+- docker pull ${IMAGE}:${VERSION} || true
 script:
-  - |
-    docker build --pull --cache-from ${IMAGE}:${VERSION} \
-      -t ${IMAGE}:${VERSION} \
-      -f Dockerfile \
-      --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-      --build-arg VCS_REF=`git rev-parse --short HEAD` \
-      --build-arg VERSION=${VERSION} .
-  - docker ps -a
-  - docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
-  - docker images
-
+- |
+  docker build --pull --cache-from ${IMAGE}:${VERSION} \
+    -t ${IMAGE}:${VERSION} \
+    -f Dockerfile \
+    --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+    --build-arg VCS_REF=`git rev-parse --short HEAD` \
+    --build-arg VERSION=${VERSION} .
+- docker ps -a
+- docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
+- docker images
 before_deploy:
-  - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
-
+- docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
 deploy:
   provider: script
   script: docker push ${IMAGE}:${VERSION}; docker push ${IMAGE}:latest
